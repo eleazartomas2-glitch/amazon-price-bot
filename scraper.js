@@ -5,31 +5,19 @@ async function getPrice(url) {
   const apiKey = process.env.SCRAPERAPI_KEY;
   const zip = process.env.AMAZON_ZIP;
 
-  // Agrega el código postal a la URL de Amazon
-  const amazonUrl = new URL(url);
-  amazonUrl.searchParams.set('tag', 'us');
-
-  const scraperUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(amazonUrl.toString())}&render=false&country_code=us&session_number=1`;
-
-  const headers = {
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept': 'text/html,application/xhtml+xml',
-  };
+  const scraperUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(url)}&render=false&country_code=us`;
 
   try {
-    const { data } = await axios.get(scraperUrl, {
-      timeout: 30000,
-      headers: {
-        'x-scraperapi-session': zip, // usa el zip como session para consistencia
-      }
-    });
-
+    const { data } = await axios.get(scraperUrl, { timeout: 30000 });
     const $ = cheerio.load(data);
 
     const title = $('#productTitle').text().trim() || null;
     const image = $('#landingImage').attr('src') || null;
 
     const priceSelectors = [
+      '.a-button-selected .a-color-base',
+      '.swatches-select-variation-price',
+      '.twister-plus-buying-options-price-data',
       '.a-price[data-a-size="xl"] .a-offscreen',
       '.a-price[data-a-size="l"] .a-offscreen',
       '#priceblock_ourprice',
