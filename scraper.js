@@ -1,32 +1,12 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
-];
-
-function randomUA() {
-  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function getPrice(url) {
-  await sleep(1000 + Math.random() * 1500);
-
-  const headers = {
-    'User-Agent': randomUA(),
-    'Accept-Language': 'es-MX,es;q=0.9,en;q=0.8',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Connection': 'keep-alive',
-  };
+  const apiKey = process.env.SCRAPERAPI_KEY;
+  const scraperUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(url)}&render=false`;
 
   try {
-    const { data } = await axios.get(url, { headers, timeout: 15000 });
+    const { data } = await axios.get(scraperUrl, { timeout: 30000 });
     const $ = cheerio.load(data);
 
     const title = $('#productTitle').text().trim() || null;
