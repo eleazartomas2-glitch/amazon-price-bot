@@ -3,10 +3,27 @@ const cheerio = require('cheerio');
 
 async function getPrice(url) {
   const apiKey = process.env.SCRAPERAPI_KEY;
-  const scraperUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(url)}&render=false`;
+  const zip = process.env.AMAZON_ZIP;
+
+  // Agrega el código postal a la URL de Amazon
+  const amazonUrl = new URL(url);
+  amazonUrl.searchParams.set('tag', 'us');
+
+  const scraperUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(amazonUrl.toString())}&render=false&country_code=us&session_number=1`;
+
+  const headers = {
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept': 'text/html,application/xhtml+xml',
+  };
 
   try {
-    const { data } = await axios.get(scraperUrl, { timeout: 30000 });
+    const { data } = await axios.get(scraperUrl, {
+      timeout: 30000,
+      headers: {
+        'x-scraperapi-session': zip, // usa el zip como session para consistencia
+      }
+    });
+
     const $ = cheerio.load(data);
 
     const title = $('#productTitle').text().trim() || null;
